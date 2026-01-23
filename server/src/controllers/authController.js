@@ -125,7 +125,6 @@ exports.login = async (req, res) => {
   }
 };
 
-
 //LOGOUT
 exports.logout = async (req, res) => {
   try {
@@ -144,7 +143,11 @@ exports.updateProfile = async (req, res) => {
     if (!profilePicture) {
       return res.status(400).json({ message: "Profile picture is required" });
     }
-    const uploadResponse = await cloudinary.uploader.upload(profilePicture);
+    const uploadResponse = await cloudinary.uploader.upload(profilePicture, {
+      public_id: `user_${userId}`, // fixed id
+      overwrite: true, // overwrite old image
+      invalidate: true,
+    });
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -152,6 +155,31 @@ exports.updateProfile = async (req, res) => {
       { new: true },
     );
     res.status(200).json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.removeProfile = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { profilePicture: "" },
+      { new: true },
+    ).select("-password");
+
+    if (updatedUser.profilePicture) {
+      const urlParts = updatedUser.profilePicture.split("/");
+      const fileNameWithExt = urlParts[urlParts.length - 1]; // abc123.jpg
+      const publicId = fileNameWithExt.split(".")[0]; // abc123
+
+      await cloudinary.uploader.destroy(publicId);
+    }
+
+    res
+      .status(200)
+      .json({ message: "Profile picture removed", data: updatedUser });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -176,7 +204,7 @@ exports.updateUser = async (req, res) => {
 
     res.status(200).json({
       message: "User updated successfully",
-      user: updatedUser,
+      data: updatedUser,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

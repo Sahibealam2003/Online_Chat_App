@@ -8,15 +8,14 @@ export const useAuth = create((set) => ({
   isLoggingIn: false,
   isLoggingOut: false,
   isUpdatingProfile: false,
+  isRemovingProfile: false,
   isUpdatingUserInfo: false,
   isCheckingAuth: true,
 
   checkAuth: async () => {
     try {
-      
       const res = await axiosInstance.get("/auth/getUser");
       set({ authUser: res.data.data });
-      
     } catch (error) {
       set({ authUser: null });
     } finally {
@@ -37,31 +36,33 @@ export const useAuth = create((set) => ({
       set({ isSigningUp: false });
     }
   },
-login : async (data) =>{
-  set({isLoggingIn :true})
-const {username,password}  = data
- if (!username || !password) {
+
+  login: async (data) => {
+    set({ isLoggingIn: true });
+    const { username, password } = data;
+    if (!username || !password) {
       toast.error("All fields are required");
-      set({isLoggingIn :false})
+      set({ isLoggingIn: false });
       return;
     }
 
-    const isMail = validate.isEmail(username)
+    const isMail = validate.isEmail(username);
 
-  try {
-    const payload = isMail ? {email :username,password} : {username, password}
-    const res = await axiosInstance.post('/auth/login',payload)
-    
-    set({authUser:res.data.data})
-    toast.success(res.message)
-  } catch (error) {
-   toast.error(error.response?.data?.error);
+    try {
+      const payload = isMail
+        ? { email: username, password }
+        : { username, password };
+      const res = await axiosInstance.post("/auth/login", payload);
 
-    
-  }finally{
-    set({isLoggingIn:false})
-  }
-},
+      set({ authUser: res.data.data });
+      
+      toast.success(res.data.message);
+    } catch (error) {
+      toast.error(error.response?.data?.error);
+    } finally {
+      set({ isLoggingIn: false });
+    }
+  },
 
   logout: async () => {
     set({ isLoggingOut: true });
@@ -75,4 +76,55 @@ const {username,password}  = data
       set({ isLoggingOut: false });
     }
   },
+
+  updateProfile : async (data) =>{
+    set({isUpdatingProfile : true})
+
+    try {
+      const res = await axiosInstance.put('auth/update-profile',data)
+      
+      set({authUser : res.data})
+      toast.success("Update profile successfully")
+    } catch (error) {
+        toast.error(error.response?.data?.error)
+       
+        
+    }finally{
+      set({isUpdatingProfile : false})
+    }
+  },
+
+  removeProfile : async () =>{
+    set({isRemovingProfile : true})
+    try {
+
+      const res = await axiosInstance.put('auth/remove-profile')
+      set({ authUser : res.data.data})
+     
+      toast.success("Remove profile successfully")
+      
+    } catch (error) {
+
+      toast.error(response?.error?.data?.error)
+      
+    }finally{
+      set({isRemovingProfile : false})
+    }
+  },
+
+  updateUserInfo : async (data) =>{
+    set({isUpdatingUserInfo:true})
+    try {
+      const res = await axiosInstance.put('auth/update-user',data)
+      set({authUser : res.data.data})
+      
+      toast.success("Updatee successfully")      
+    } catch (error) {
+      toast.error(response.error.data.error)
+      
+      
+    }finally{
+      set({isUpdatingUserInfo : false})
+    }
+  }
 }));
