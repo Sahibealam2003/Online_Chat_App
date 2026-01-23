@@ -28,14 +28,14 @@ const isAbove18 = (dob) => {
 //SIGNUP
 exports.signup = async (req, res) => {
   const { fullName, password, email, username, dob } = req.body;
+
   try {
     if ((!username && !email) || !password) {
-      return res.status(400).json({ error: "All fields are required" });
+      return res.status(400).json("All fields are required");
     }
 
     //Email
-    if (!validator.isEmail(email))
-      throw new Error({ message: "Invalid email address" });
+    if (!validator.isEmail(email)) throw new Error("Invalid email address");
     //Password
     if (
       !validator.isStrongPassword(password, {
@@ -46,7 +46,7 @@ exports.signup = async (req, res) => {
         minSymbols: 1,
       })
     )
-      throw new Error({ message: "Password must be strong" });
+      throw new Error("Password must be strong");
 
     //DOB
     isAbove18(dob);
@@ -55,8 +55,8 @@ exports.signup = async (req, res) => {
       $or: [{ email }, { username }],
     }).lean();
 
-    if (!existingUser) {
-      return res.status(401).json({ error: "Invalid credentials" });
+    if (existingUser) {
+      return res.status(409).json({ error: "User alredy exist" });
     }
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
@@ -68,7 +68,13 @@ exports.signup = async (req, res) => {
       dob,
     });
     generateToken(newUser._id, res);
-    res.status(201).json({ message: "User Register Successfully" });
+    res.status(201).json({
+      _id: newUser._id,
+      fullName: newUser.fullName,
+      email: newUser.email,
+      username: newUser.username,
+      dob: newUser.dob,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -77,6 +83,7 @@ exports.signup = async (req, res) => {
 //LOGIN
 exports.login = async (req, res) => {
   const { username, email, password } = req.body;
+
   try {
     if ((!username && !email) || !password) {
       return res.status(400).json({ error: "All fields are required" });
@@ -85,16 +92,23 @@ exports.login = async (req, res) => {
     const query = [];
     if (username) query.push({ username });
     if (email) query.push({ email });
-    const existingUser = await User.findOne({ $or: query });
 
+    if (query.length === 0) {
+      return res.status(400).json({ error: "Username or email is required" });
+    }
+
+    const existingUser = await User.findOne({ $or: query });
     if (!existingUser) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
     const isMatch = await bcrypt.compare(password, existingUser.password);
-    if (!isMatch) throw new Error("Invalid Cradential");
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
 
     generateToken(existingUser._id, res);
+
     res.status(200).json({
       message: "Login Successfully",
       data: {
@@ -107,9 +121,10 @@ exports.login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: "Server error" });
   }
 };
+
 
 //LOGOUT
 exports.logout = async (req, res) => {
@@ -142,26 +157,27 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-//User Info Update 
+//User Info Update
 exports.updateUser = async (req, res) => {
   const { fullName, username } = req.body;
 
   try {
     if (!fullName && !username) {
-      return res.status(400).json({ message: "At least one field is required" });
+      return res
+        .status(400)
+        .json({ message: "At least one field is required" });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       { $set: { fullName, username } },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).select("-password");
 
     res.status(200).json({
       message: "User updated successfully",
-      user: updatedUser
+      user: updatedUser,
     });
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -178,6 +194,6 @@ exports.getUserInfo = async (req, res) => {
 
     res.status(200).json({ data: user });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(401).json({ error: error.message });
   }
 };
