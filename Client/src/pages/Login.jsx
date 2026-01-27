@@ -71,6 +71,7 @@ const LoginPage = () => {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />
+                
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
@@ -84,7 +85,6 @@ const LoginPage = () => {
                 </button>
               </div>
             </div>
-
             <button type="submit" className="btn btn-primary w-full" disabled={isLoggingIn}>
               {isLoggingIn ? (
                 <>
@@ -108,7 +108,7 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* Right Side - Image/Pattern */}
+      
       <AuthImagePattern
         title={"Welcome back!"}
         subtitle={"Sign in to continue your conversations and catch up with your messages."}

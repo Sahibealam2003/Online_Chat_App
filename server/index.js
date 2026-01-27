@@ -6,8 +6,9 @@ const cookieParser = require("cookie-parser");
 
 const authRoute = require("./src/routes/authRoutes.js");
 const messageRoute = require("./src/routes/messageRoute.js");
+const { app,server } = require("./src/utils/socket.js");
 
-const app = express();
+
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
@@ -27,6 +28,6 @@ app.use("/api/message", messageRoute);
 
 connect();
 
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
   console.log("Server running on port " + process.env.PORT);
 });

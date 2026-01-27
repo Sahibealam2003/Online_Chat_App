@@ -1,5 +1,5 @@
 import { Camera, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../Utils/useAuth";
 
 const EditProfileModal = ({
@@ -10,22 +10,26 @@ const EditProfileModal = ({
   handleImageUpload,
   removeProfilePicture,
 }) => {
-  const { isUpdatingProfile, authUser,isRemovingProfile,updateUserInfo } = useAuth();
+  const { isUpdatingProfile, authUser, isRemovingProfile, updateUserInfo } = useAuth();
   const [fullName, setFullName] = useState(authUser?.fullName || "");
-  const [username, setUsername] = useState(authUser?.username || "");
+
+  // Update local state when authUser changes
+  useEffect(() => {
+    setFullName(authUser?.fullName || "");
+  }, [authUser]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    updateUserInfo({fullName,username})
+    if (fullName.trim() === "") return;
+    await updateUserInfo({ fullName }); // username untouched
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* BACKDROP */}
-
       <div
         onClick={onClose}
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -34,25 +38,27 @@ const EditProfileModal = ({
       {/* MODAL */}
       <div className="relative w-full max-w-md bg-base-300 rounded-xl p-6 shadow-xl animate-in fade-in zoom-in">
         {/* HEADER */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Edit Profile</h2>
+          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-200">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-        <div className="flex flex-col items-center gap-4">
+        {/* AVATAR SECTION */}
+        <div className="flex flex-col items-center gap-4 mb-4">
           <div className="relative">
             <img
               src={selectedImg || authUser.profilePicture || "/avatar.png"}
               alt="Profile"
               className="size-32 rounded-full object-cover border-4 border-base-200 shadow-md"
             />
-
             <label
               htmlFor="avatar-upload"
-              className={`
-                  absolute bottom-0 right-0 
-                  bg-primary text-white
-                  p-2 rounded-full cursor-pointer 
-                  transition-all duration-200
-                  hover:scale-105 hover:shadow-lg
-                  ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}
-                `}
+              className={`absolute bottom-0 right-0 
+                bg-primary text-white p-2 rounded-full cursor-pointer 
+                transition-all duration-200 hover:scale-105 hover:shadow-lg
+                ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}`}
             >
               <Camera className="w-5 h-5" />
               <input
@@ -65,7 +71,6 @@ const EditProfileModal = ({
               />
             </label>
           </div>
-
           <p className="text-xs text-zinc-400">
             {isUpdatingProfile
               ? "Uploading..."
@@ -75,21 +80,12 @@ const EditProfileModal = ({
           {authUser.profilePicture && (
             <button
               className="text-xs text-red-400 hover:underline"
-              onClick={() => removeProfilePicture()}
+              onClick={removeProfilePicture}
               disabled={isUpdatingProfile || isRemovingProfile}
             >
               Remove Profile Picture
             </button>
           )}
-        </div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Edit Profile</h2>
-          <button
-            onClick={onClose}
-            className="text-zinc-400 hover:text-zinc-200"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         {/* FORM */}
@@ -105,14 +101,14 @@ const EditProfileModal = ({
             />
           </div>
 
-          {/* DOB */}
+          {/* USERNAME (readonly) */}
           <div>
-            <label className="text-xs text-zinc-400">Username</label>
+            <label className="text-xs text-zinc-400">Username (cannot change)</label>
             <input
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full mt-1 px-3 py-2 rounded-lg bg-base-200 border border-base-100 focus:outline-none"
+              value={authUser?.username || ""}
+              readOnly
+              className="w-full mt-1 px-3 py-2 rounded-lg bg-base-200 border border-base-100 text-zinc-400 cursor-not-allowed"
             />
           </div>
 
@@ -128,10 +124,10 @@ const EditProfileModal = ({
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isUpdatingProfile}
               className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-content hover:opacity-90"
             >
-              {isLoading ? "Saving..." : "Save Changes"}
+              {isLoading || isUpdatingProfile ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

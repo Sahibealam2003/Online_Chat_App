@@ -1,6 +1,7 @@
 const Message = require("../models/messageSchema")
 const User = require("../models/userSchema")
-
+const cloudinary = require("../utils/cloudinary");
+const { getReciverSocketId, io } = require("../utils/socket");
 exports.getAllUser = async(req,res)=>{
     try {
         const loggedInUser = req.user._id
@@ -16,28 +17,24 @@ exports.getAllUser = async(req,res)=>{
 }
 
 
-exports.getAllMessage= async(req,res)=>{
-    try {
-        const {id : reciverId} = req.params
-        const senderId = req.user._id
-        const allMessage = await Message.find({
-            $or:[
-                {senderId : senderId,reciverId : reciverId},
-                { senderId :reciverId, reciverId :senderId}
-            ]
-        })
+exports.getAllMessage = async (req, res) => {
+  try {
+    const { id: reciverId } = req.params;
+    const senderId = req.user._id;
 
-        if(allMessage.length ==0){
-            throw new Error("No message Yet")
-        }
+    const allMessage = await Message.find({
+      $or: [
+        { senderId, reciverId },
+        { senderId: reciverId, reciverId: senderId },
+      ],
+    });
 
-        res.status(200).json({data : allMessage})
-    } catch (error) {
-        res.status(400).json({error : error.message})
-        
-    }
+    res.status(200).json({ data: allMessage });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 
-}
 
 
 exports.sendMessage= async(req,res)=>{
@@ -61,6 +58,10 @@ exports.sendMessage= async(req,res)=>{
         });
 
         await newMessage.save()
+        const reciverSocketId = getReciverSocketId(reciverId)
+        if(reciverSocketId){
+            io.to(reciverSocketId).emit("newMessage" , newMessage)
+        }
         // after add real time chat using Socket.io
         res.status(201).json({data:newMessage})
     } catch (error) {

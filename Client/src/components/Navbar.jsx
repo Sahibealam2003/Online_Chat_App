@@ -5,12 +5,14 @@ import { useAuth } from "../Utils/useAuth";
 const Navbar = () => {
   const{logout,authUser}=useAuth()
 
+  
+
   return (
     <div
-      className="bg-base-100 border-b border-base-300 fixed w-full top-0 z-40 
-    backdrop-blur-lg bg-base-100/80"
+      className={`${!authUser ? "hidden" : ""} bg-base-100 border-b border-base-300 fixed w-full top-0 z-40 
+    backdrop-blur-lg bg-base-100/80`}
     >
-      <div className="container mx-auto px-4 h-16">
+      <div className="container mx-auto px-4  py-2">
         <div className="flex items-center justify-between h-full">
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-all">
@@ -23,7 +25,7 @@ const Navbar = () => {
 
           <div className="flex items-center gap-2">
             <Link
-              to={"/settings"}
+              to={"/setting"}
               className={`
               btn btn-sm gap-2 transition-colors
               

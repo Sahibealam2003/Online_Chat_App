@@ -10,16 +10,21 @@ import { useAuth } from "./Utils/useAuth";
 import { Toaster } from "react-hot-toast";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
+import { useThemeStore } from "./Utils/useThemeStore";
+
 
 const App = () => {
-  const { checkAuth } = useAuth();
+  const { checkAuth,onlineUsers } = useAuth();
+const {theme} =   useThemeStore()
+useEffect(() => {
+  checkAuth();
+}, [checkAuth]);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+
+console.log(onlineUsers);
 
   return (
-    <div>
+    <div data-theme={theme} >
       <Navbar />
 
       <Routes>

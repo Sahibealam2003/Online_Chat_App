@@ -187,29 +187,30 @@ exports.removeProfile = async (req, res) => {
 
 //User Info Update
 exports.updateUser = async (req, res) => {
-  const { fullName, username } = req.body;
+  const { fullName } = req.body; // sirf fullName ko read karo
 
   try {
-    if (!fullName && !username) {
+    if (!fullName) {
       return res
         .status(400)
-        .json({ message: "At least one field is required" });
+        .json({ message: "Full name is required" });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
-      { $set: { fullName, username } },
-      { new: true, runValidators: true },
+      { $set: { fullName } }, // sirf fullName update hoga
+      { new: true, runValidators: true }
     ).select("-password");
 
     res.status(200).json({
-      message: "User updated successfully",
+      message: "Full name updated successfully",
       data: updatedUser,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 //Get User Info
 exports.getUserInfo = async (req, res) => {
