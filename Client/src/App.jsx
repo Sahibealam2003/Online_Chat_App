@@ -21,7 +21,7 @@ useEffect(() => {
 }, [checkAuth]);
 
 
-console.log(onlineUsers);
+
 
   return (
     <div data-theme={theme} >

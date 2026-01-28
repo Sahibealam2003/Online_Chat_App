@@ -52,20 +52,28 @@ sendMessage: async (data) => {
     );
   }
 },
-lisitemMessages : ()=>{
-const  {selectedUser} = get()
-if(!selectedUser) return
-const socket = useAuth.getState().socket
-//todo Optm
-socket.on("newMessage",(data)=>{
-  if(data.senderId !== selectedUser._id) return
-set({messages:[...get().messages,data]})
-})
+lisitemMessages: () => {
+  const { selectedUser } = get();
+  if (!selectedUser) return;
+
+  const socket = useAuth.getState().socket;
+  if (!socket) return; 
+
+  socket.on("newMessage", (data) => {
+    if (data.senderId !== selectedUser._id) return;
+
+    set({
+      messages: [...get().messages, data],
+    });
+  });
 },
-notLisitemMessages : () =>{
-const socket = useAuth.getState().socket
-socket.off("newMessage")
+notLisitemMessages: () => {
+  const socket = useAuth.getState().socket;
+  if (!socket) return; 
+
+  socket.off("newMessage");
 },
+
 
     setSelectedUser : (selectedUser) => set({selectedUser})
     }));

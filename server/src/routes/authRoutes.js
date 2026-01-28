@@ -1,6 +1,6 @@
 const express =require('express')
 const router = express.Router(); // no space after dot
-const {login ,signup,logout,updateProfile,updateUser,getUserInfo, removeProfile}  =require('../controllers/authController');
+const {login ,signup,logout,updateProfile,updateUser,getUserInfo, removeProfile,removeUser}  =require('../controllers/authController');
 const { protectRoute } = require('../middleware/protectRoute');
 // Signup route
 router.post("/signup",signup);
@@ -15,6 +15,8 @@ router.put('/update-profile',protectRoute,updateProfile)
 router.put('/remove-profile',protectRoute,removeProfile)
 router.put('/update-user',protectRoute,updateUser)
 router.get('/getUser',protectRoute,getUserInfo)
+router.delete('/removeUser/:id',protectRoute,removeUser)
+
 
 
 module.exports = router

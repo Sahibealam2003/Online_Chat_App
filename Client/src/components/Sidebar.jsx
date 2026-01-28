@@ -7,8 +7,12 @@ import SidebarSkeleton from "./SidebarSkeleton";
 const Sidebar = () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } = useChat();
 
-  const { onlineUsers } = useAuth();
+  const { onlineUsers,authUser } = useAuth();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
+
+const otherOnlineUsers = onlineUsers.filter(
+  (id) => id !== authUser?._id
+);
 
   useEffect(() => {
     getUsers();
@@ -21,7 +25,7 @@ const Sidebar = () => {
   if (isUsersLoading) return <SidebarSkeleton />;
 
   return (
-    <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
+    <div className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
       <div className="border-b border-base-300 w-full p-5">
         <div className="flex items-center gap-2">
           <Users className="size-6" />
@@ -38,7 +42,7 @@ const Sidebar = () => {
             />
             <span className="text-sm">Show online only</span>
           </label>
-          <span className="text-xs text-zinc-500">({onlineUsers.length - 1} online)</span>
+          <span className="text-xs text-zinc-500">({otherOnlineUsers.length} online)</span>
         </div>
       </div>
 
@@ -55,7 +59,7 @@ const Sidebar = () => {
           >
             <div className="relative mx-auto lg:mx-0">
               <img
-                src={user.profilePic || "/avatar.png"}
+                src={user.profilePicture || "/avatar.png"}
                 alt={user.name}
                 className="size-12 object-cover rounded-full"
               />
@@ -81,7 +85,7 @@ const Sidebar = () => {
           <div className="text-center text-zinc-500 py-4">No online users</div>
         )}
       </div>
-    </aside>
+    </div>
   );
 };
 export default Sidebar;

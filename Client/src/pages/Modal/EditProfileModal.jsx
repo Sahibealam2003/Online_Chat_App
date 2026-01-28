@@ -1,6 +1,7 @@
 import { Camera, X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useAuth } from "../Utils/useAuth";
+import { useAuth } from "../../Utils/useAuth";
+
 
 const EditProfileModal = ({
   isOpen,
@@ -12,6 +13,7 @@ const EditProfileModal = ({
 }) => {
   const { isUpdatingProfile, authUser, isRemovingProfile, updateUserInfo } = useAuth();
   const [fullName, setFullName] = useState(authUser?.fullName || "");
+ 
 
   // Update local state when authUser changes
   useEffect(() => {
@@ -40,7 +42,7 @@ const EditProfileModal = ({
         {/* HEADER */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Edit Profile</h2>
-          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-200">
+          <button onClick={onClose} className="text-zinc-400 transition transform hover:scale-105 hover:font-bold cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -79,7 +81,7 @@ const EditProfileModal = ({
 
           {authUser.profilePicture && (
             <button
-              className="text-xs text-red-400 hover:underline"
+              className="text-xs text-red-400 hover:underline cursor-pointer"
               onClick={removeProfilePicture}
               disabled={isUpdatingProfile || isRemovingProfile}
             >
@@ -117,7 +119,7 @@ const EditProfileModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm rounded-lg bg-base-200 hover:bg-base-100"
+              className="px-4 py-2 text-sm rounded-lg bg-base-200 hover:bg-base-100 cursor-pointer duration-200"
             >
               Cancel
             </button>
@@ -125,7 +127,7 @@ const EditProfileModal = ({
             <button
               type="submit"
               disabled={isLoading || isUpdatingProfile}
-              className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-content hover:opacity-90"
+              className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-content hover:opacity-90 cursor-pointer   duration-200"
             >
               {isLoading || isUpdatingProfile ? "Saving..." : "Save Changes"}
             </button>

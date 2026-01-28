@@ -1,6 +1,8 @@
-import { MessageSquare } from "lucide-react";
+import { BringToFront } from "lucide-react";
+import { getIconColor, useThemeStore } from "../Utils/useThemeStore";
 
 const NoChatSelected = () => {
+  const {theme} = useThemeStore()
   return (
     <div className="w-full flex flex-1 flex-col items-center justify-center p-16 bg-base-100/50">
       <div className="max-w-md text-center space-y-6">
@@ -11,7 +13,7 @@ const NoChatSelected = () => {
               className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center
              justify-center animate-bounce"
             >
-              <MessageSquare className="w-8 h-8 text-primary " />
+              <BringToFront className={`w-6 h-6 ${getIconColor(theme)}`} />
             </div>
           </div>
         </div>

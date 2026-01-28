@@ -9,15 +9,17 @@ import {
   User,
   Lock,
   Calendar,
+  BringToFront,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import AuthImagePattern from "../components/AuthImagePattern";
 import toast from "react-hot-toast";
+import { getIconColor, useThemeStore } from "../Utils/useThemeStore";
 
 const SignUp = () => {
   const { signup, isSigningUp } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-
+const {theme} = useThemeStore()
   const [formData, setFormData] = useState({
     fullName: "",
     username: "",
@@ -81,7 +83,7 @@ const SignUp = () => {
           <div className="text-center mb-8">
             <div className="flex flex-col items-center gap-2 group">
               <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <MessageSquare className="size-6 text-primary" />
+                <BringToFront className={`w-6 h-6 ${getIconColor(theme)}`} />
               </div>
               <h1 className="text-2xl font-bold mt-2">Create Account</h1>
               <p className="text-base-content/60">

@@ -1,15 +1,16 @@
 import { ArrowLeft, Send } from "lucide-react";
 import { useThemeStore } from "../Utils/useThemeStore";
 import { PREVIEW_MESSAGES, THEMES } from "../themes/allthemes";
+import { useNavigate } from "react-router-dom";
 
 const Setting = () => {
   const { theme, setTheme } = useThemeStore();
-
+const nav= useNavigate()
   return (
     <div className="min-h-screen container mx-auto px-4 pt-20 pb-10 max-w-6xl relative">
     <button
           onClick={() => nav("/")}
-          className="absolute left-0 top-20 flex items-center gap-1 px-3 py-1.5 text-xs font-medium 
+          className="absolute hidden left-5 top-20 sm:flex items-center gap-1 px-3 py-1.5 text-xs font-medium 
   bg-base-200 border border-base-100 rounded-lg 
   hover:bg-base-100 transition cursor-pointer"
         >
@@ -31,7 +32,7 @@ const Setting = () => {
             key={t}
             onClick={() => setTheme(t)}
             className={`
-              group flex flex-col items-center gap-1.5 p-2 rounded-lg transition-all duration-200
+              group flex flex-col items-center gap-1.5 p-2 rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer
               ${theme === t ? "bg-base-200 shadow-inner" : "hover:bg-base-200/30"}
             `}
           >

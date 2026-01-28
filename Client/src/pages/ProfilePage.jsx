@@ -1,8 +1,19 @@
-import { useState } from "react";
-import { ArrowLeft, Cake, Camera, ChevronDown, Mail, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Cake,
+  Camera,
+  ChevronDown,
+  LogOut,
+  Mail,
+  User,
+} from "lucide-react";
 import { useAuth } from "../Utils/useAuth";
 import { useNavigate } from "react-router-dom";
-import EditProfileModal from "./EditProfileModal";
+import EditProfileModal from "./Modal/EditProfileModal";
+import LogoutModal from "./Modal/LogoutModal";
+import DeleteAccountModal from "./Modal/DeleteAccountModal";
 
 const ProfilePage = () => {
   const {
@@ -10,14 +21,17 @@ const ProfilePage = () => {
     isUpdatingProfile,
     updateProfile,
     removeProfile,
-    isRemovingProfile,
+    logout,
+    removeUser,
+    isDeleteingUser,
   } = useAuth();
 
   const [selectedImg, setSelectedImg] = useState(null);
   const [showAccountInfo, setShowAccountInfo] = useState(false);
   const [showProfileInfo, setShowProfileInfo] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-
+  const [open, setOpen] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const nav = useNavigate();
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -39,12 +53,15 @@ const ProfilePage = () => {
     } catch (error) {}
   };
 
+  const handelDeleteAccount = async () => {
+    removeUser(authUser);
+  };
   return (
     <div className="min-h-screen relative bg-base-200">
       <div className="max-w-xl mx-auto py-8">
         <button
           onClick={() => nav("/")}
-          className="absolute left-10 top-20 flex items-center gap-1 px-3 py-1.5 text-xs font-medium 
+          className="fixed left-20 hidden   top-25 sm:flex items-center gap-1 px-3 py-1.5 text-xs font-medium 
   bg-base-200 border border-base-100 rounded-lg 
   hover:bg-base-100 transition cursor-pointer"
         >
@@ -176,7 +193,7 @@ const ProfilePage = () => {
           <div className="mt-3 ">
             <div
               onClick={() => setShowAccountInfo(!showAccountInfo)}
-              className="flex items-center justify-between cursor-pointer py-2"
+              className="flex items-center justify-between cursor-pointer"
             >
               <h2 className="text-lg font-medium tracking-wide">
                 Account Information
@@ -197,17 +214,61 @@ const ProfilePage = () => {
               }`}
             >
               <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between py-2 border-b border-zinc-700/60">
+                <div className="flex items-center justify-between py-2 border-b border-zinc-700/0">
                   <span className="text-zinc-400">Member Since</span>
-                  <span>{authUser.createdAt?.split("T")[0]}</span>
+                  <span>
+                    {authUser?.createdAt
+                      ? authUser.createdAt.split("T")[0]
+                      : "Loading..."}
+                  </span>
                 </div>
 
-                <div className="flex items-center justify-between py-2">
+                <div className="flex items-center justify-between pt-2">
                   <span className="text-zinc-400">Account Status</span>
                   <span className="text-green-500 font-medium">Active</span>
                 </div>
+
+                {/* Delete Account */}
+                <div
+                  className="flex items-center justify-between pt-2 "
+                >
+                  <span className="text-red-500 font-semibold">
+                    Delte Account
+                  </span>
+                  <span
+                  onClick={() => {
+                    setOpenDeleteModal(true);
+                  }}
+                   className="text-red-500 font-medium cursor-pointer transition transform hover:scale-104 duration-200">
+                    <AlertCircle />
+                  </span>
+                </div>
+                <DeleteAccountModal
+                    isOpen={openDeleteModal}
+                    onClose={() => setOpenDeleteModal(false)}
+                    onDelete={handelDeleteAccount}
+                    isDeleteingUser={isDeleteingUser}
+                  />
               </div>
             </div>
+          </div>
+
+          {/* Logout */}
+
+          <div className="border-b border-zinc-700/60"></div>
+          <div className="mt-3 ">
+            <button
+              className="flex gap-2 items-center cursor-pointer transition-transform duration-200 hover:scale-105"
+              onClick={() => setOpen(true)}
+            >
+              <LogOut className="size-5 text-red-500" />
+              <span className="inline">Logout</span>
+            </button>
+            <LogoutModal
+              isOpen={open}
+              onClose={() => setOpen(false)}
+              logout={logout}
+            />
           </div>
         </div>
       </div>

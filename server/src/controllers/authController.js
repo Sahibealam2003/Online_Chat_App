@@ -68,13 +68,9 @@ exports.signup = async (req, res) => {
       dob,
     });
     generateToken(newUser._id, res);
-    res.status(201).json({
-      _id: newUser._id,
-      fullName: newUser.fullName,
-      email: newUser.email,
-      username: newUser.username,
-      dob: newUser.dob,
-    });
+    const newUserObj = newUser.toObject(); // convert to plain object
+    const { password: pwd, ...safeUser } = newUserObj; // rename password to pwd
+    res.status(201).json({ data: safeUser });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -109,17 +105,9 @@ exports.login = async (req, res) => {
 
     generateToken(existingUser._id, res);
 
-    res.status(200).json({
-      message: "Login Successfully",
-      data: {
-        _id: existingUser._id,
-        email: existingUser.email,
-        username: existingUser.username,
-        fullName: existingUser.fullName,
-        dob: existingUser.dob,
-        profilePicture: existingUser.profilePicture,
-      },
-    });
+    const newUserObj = existingUser.toObject(); 
+    const { password: pwd, ...safeUser } = newUserObj;
+    res.status(201).json({ data: safeUser });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
@@ -191,15 +179,13 @@ exports.updateUser = async (req, res) => {
 
   try {
     if (!fullName) {
-      return res
-        .status(400)
-        .json({ message: "Full name is required" });
+      return res.status(400).json({ message: "Full name is required" });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       { $set: { fullName } }, // sirf fullName update hoga
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).select("-password");
 
     res.status(200).json({
@@ -210,7 +196,6 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 //Get User Info
 exports.getUserInfo = async (req, res) => {
@@ -224,5 +209,30 @@ exports.getUserInfo = async (req, res) => {
     res.status(200).json({ data: user });
   } catch (error) {
     res.status(401).json({ error: error.message });
+  }
+};
+
+//Delete User
+exports.removeUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const userId = req.user._id.toString();
+
+    if (userId !== id) {
+      return res.status(403).json({
+        error: "You are not authorized to delete this account",
+      });
+    }
+
+    const deleteUser = await User.findByIdAndDelete(id).select("-password");
+    if (!deleteUser) {
+      throw new Error("USer not find");
+    }
+
+    res
+      .status(200)
+      .json({ messgae: "User accout delete successfully", data: deleteUser });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 };

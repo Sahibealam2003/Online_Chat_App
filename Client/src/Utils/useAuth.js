@@ -15,26 +15,30 @@ export const useAuth = create((set, get) => ({
   isRemovingProfile: false,
   isUpdatingUserInfo: false,
   isCheckingAuth: true,
+  isDeleteingUser : false,
   onlineUsers: [],
   socket: null,
 
-  checkAuth: async () => {
-    try {
-      const res = await axiosInstance.get("/auth/getUser");
-      set({ authUser: res.data.data });
-      get().connectSocket();
-    } catch (error) {
-      set({ authUser: null });
-    } finally {
-      set({ isCheckingAuth: false });
-    }
-  },
+ checkAuth: async () => {
+  set({ isCheckingAuth: true });
+
+  try {
+    const res = await axiosInstance.get("/auth/getUser");
+    set({ authUser: res.data.data });
+    get().connectSocket();
+  } catch (error) {
+    set({ authUser: null });
+  } finally {
+    set({ isCheckingAuth: false });
+  }
+},
+
 
   signup: async (data) => {
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/auth/signup", data);
-      set({ authUser: res.data });
+      set({ authUser: res.data.data });
       toast.success("Account create successfully");
       get().connectSocket();
     } catch (error) {
@@ -45,31 +49,24 @@ export const useAuth = create((set, get) => ({
   },
 
   login: async (data) => {
-    set({ isLoggingIn: true });
-    const { username, password } = data;
-    if (!username || !password) {
-      toast.error("All fields are required");
-      set({ isLoggingIn: false });
-      return;
-    }
+  set({ isLoggingIn: true });
+  try {
+    const res = await axiosInstance.post("/auth/login", data);
 
-    const isMail = validate.isEmail(username);
+    set({ authUser: res.data.data });
 
-    try {
-      const payload = isMail
-        ? { email: username, password }
-        : { username, password };
-      const res = await axiosInstance.post("/auth/login", payload);
 
-      set({ authUser: res.data.data });
-      toast.success(res.data.message);
-      get().connectSocket();
-    } catch (error) {
-      toast.error(error.response?.data?.error);
-    } finally {
-      set({ isLoggingIn: false });
-    }
-  },
+    toast.success("Login successfully");
+    get().connectSocket();
+  } catch (error) {
+    toast.error(error.response?.data?.error);
+    console.log(error);
+    
+  } finally {
+    set({ isLoggingIn: false });
+  }
+},
+
 
   logout: async () => {
     set({ isLoggingOut: true });
@@ -92,7 +89,7 @@ export const useAuth = create((set, get) => ({
       const res = await axiosInstance.put("/auth/update-profile", data);
 
       set({ authUser: res.data });
-      toast.success("Update profile successfully");
+      toast.success("Profile photo updated successfully");
     } catch (error) {
       toast.error(error.response?.data?.error);
     } finally {
@@ -120,20 +117,35 @@ updateUserInfo: async (data) => {
     // sirf fullName send karna
     const res = await axiosInstance.put("/auth/update-user", { fullName: data.fullName });
     set({ authUser: res.data.data });
-    toast.success("Full name updated successfully");
+    toast.success("Profile updated successfully");
   } catch (error) {
     toast.error(error.response?.data?.error);
   } finally {
     set({ isUpdatingUserInfo: false });
   }
 },
+removeUser: async (user) => {
+  set({ isDeleteingUser: true });
+
+  try {
+    await axiosInstance.delete(`/auth/removeUser/${user._id}`);
+    set({ authUser: null });
+    toast.success(`${user.fullName} account deleted successfully`);
+  } catch (error) {
+    toast.error(error.response?.data?.error || "Something went wrong");
+  } finally {
+    set({ isDeleteingUser: false });
+  }
+},
+
 
   connectSocket: () => {
     const { authUser } = get();
     if (!authUser || get().socket?.connected) return;
 
     const socket = io(SOCKET_URL,{
-      query:{userId : authUser._id}
+      query:{userId : authUser._id},
+       transports: ["websocket"],
     });
     socket.connect();
     socket.on("getOnlineUsers",(usersId)=>{
