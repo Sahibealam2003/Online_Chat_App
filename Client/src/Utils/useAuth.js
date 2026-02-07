@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import validate from "validator";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = import.meta.env.MODE === "development" ? "http://localhost:8000" : "/api";
+const SOCKET_URL = import.meta.env.MODE === "development" ? "http://localhost:8000" : "/";
 
 export const useAuth = create((set, get) => ({
   authUser: null,
@@ -139,20 +139,28 @@ removeUser: async (user) => {
 },
 
 
-  connectSocket: () => {
-    const { authUser } = get();
-    if (!authUser || get().socket?.connected) return;
+connectSocket: () => {
+  const { authUser } = get();
+  if (!authUser || get().socket?.connected) return;
 
-    const socket = io(SOCKET_URL,{
-      query:{userId : authUser._id},
-       transports: ["websocket"],
-    });
-    socket.connect();
-    socket.on("getOnlineUsers",(usersId)=>{
-      set({onlineUsers : usersId})
-    })
-    set({socket : socket})
-  },
+  const socket = io(
+    import.meta.env.MODE === "development"
+      ? "http://localhost:8000"
+      : "/",
+    {
+      query: { userId: authUser._id },
+      withCredentials: true,
+    }
+  );
+
+  socket.on("getOnlineUsers", (usersId) => {
+    set({ onlineUsers: usersId });
+  });
+
+  set({ socket });
+},
+
+
   disconnectSocket: () => {
     if(get().socket?.connected) get().socket.disconnect()
   },

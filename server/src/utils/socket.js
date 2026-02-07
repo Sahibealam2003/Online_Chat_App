@@ -7,9 +7,14 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173"],
+    origin:
+      process.env.NODE_ENV === "development"
+        ? ["http://localhost:5173"]
+        : true, // allow same-origin (Render)
+    credentials: true,
   },
 });
+
 
 // Online users map
 const userSocket = {};
