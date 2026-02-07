@@ -1,0 +1,21 @@
+{
+  "name": "chat-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build" :"npm install --prefix server && npm install --prefix Client && npm run build --prefix Client",
+    "start" : "npm run start --prefix server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sahibealam2003/Online_Chat_App.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sahibealam2003/Online_Chat_App/issues"
+  },
+  "homepage": "https://github.com/Sahibealam2003/Online_Chat_App#readme",
+  "description": ""
+}

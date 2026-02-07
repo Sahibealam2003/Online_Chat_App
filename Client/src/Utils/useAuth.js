@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import validate from "validator";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:8000";
+const SOCKET_URL = import.meta.env.MODE === "development" ? "http://localhost:8000" : "/";
 
 export const useAuth = create((set, get) => ({
   authUser: null,
