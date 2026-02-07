@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // User Schema
 const userSchema = new mongoose.Schema(
@@ -27,19 +27,18 @@ const userSchema = new mongoose.Schema(
       minlength: 8,
     },
     profilePicture: {
-      type: String, // URL ya path of image
-      default: "", // optional, blank if not uploaded
+      type: String,
+      default: "",
     },
     dob: {
       type: Date,
       required: true,
     },
   },
-
-  { timestamps: true },
+  { timestamps: true }
 );
 
 // Model
 const User = mongoose.model("User", userSchema);
 
-module.exports = User;
+export default User;

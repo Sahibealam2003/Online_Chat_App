@@ -1,22 +1,33 @@
-const express =require('express')
-const router = express.Router(); // no space after dot
-const {login ,signup,logout,updateProfile,updateUser,getUserInfo, removeProfile,removeUser}  =require('../controllers/authController');
-const { protectRoute } = require('../middleware/protectRoute');
-// Signup route
-router.post("/signup",signup);
+import express from "express";
+const router = express.Router();
 
-// Login route
-router.post("/login",login );
+import {
+  login,
+  signup,
+  logout,
+  updateProfile,
+  updateUser,
+  getUserInfo,
+  removeProfile,
+  removeUser,
+} from "../controllers/authController.js";
 
-// Logout route
-router.post("/logout",logout);
+import { protectRoute } from "../middleware/protectRoute.js";
 
-router.put('/update-profile',protectRoute,updateProfile)
-router.put('/remove-profile',protectRoute,removeProfile)
-router.put('/update-user',protectRoute,updateUser)
-router.get('/getUser',protectRoute,getUserInfo)
-router.delete('/removeUser/:id',protectRoute,removeUser)
+// Signup
+router.post("/signup", signup);
 
+// Login
+router.post("/login", login);
 
+// Logout
+router.post("/logout", logout);
 
-module.exports = router
+// Profile & User
+router.put("/update-profile", protectRoute, updateProfile);
+router.put("/remove-profile", protectRoute, removeProfile);
+router.put("/update-user", protectRoute, updateUser);
+router.get("/getUser", protectRoute, getUserInfo);
+router.delete("/removeUser/:id", protectRoute, removeUser);
+
+export default router;

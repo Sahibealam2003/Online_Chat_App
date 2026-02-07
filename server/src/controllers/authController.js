@@ -1,15 +1,18 @@
-const User = require("../models/userSchema");
-const bcrypt = require("bcrypt");
-const validator = require("validator");
-const { generateToken } = require("../utils/generateToken");
-const cloudinary = require("../utils/cloudinary");
-require("dotenv").config();
+import User from "../models/userSchema.js";
+import bcrypt from "bcrypt";
+import validator from "validator";
+import dotenv from "dotenv";
 
-//DOB check
+import { generateToken } from "../utils/generateToken.js";
+import cloudinary from "../utils/cloudinary.js";
+
+dotenv.config();
+
+// DOB check
 const isAbove18 = (dob) => {
   const birth = new Date(dob);
   if (isNaN(birth.getTime())) {
-    throw new Error({ message: "Invalid date of birth" });
+    throw new Error("Invalid date of birth");
   }
 
   const today = new Date();
@@ -21,12 +24,12 @@ const isAbove18 = (dob) => {
   }
 
   if (age < 18) {
-    throw new Error({ message: "Age must be 18+" });
+    throw new Error("Age must be 18+");
   }
 };
 
-//SIGNUP
-exports.signup = async (req, res) => {
+// SIGNUP
+export const signup = async (req, res) => {
   const { fullName, password, email, username, dob } = req.body;
 
   try {
@@ -34,9 +37,10 @@ exports.signup = async (req, res) => {
       return res.status(400).json("All fields are required");
     }
 
-    //Email
-    if (!validator.isEmail(email)) throw new Error("Invalid email address");
-    //Password
+    if (!validator.isEmail(email)) {
+      throw new Error("Invalid email address");
+    }
+
     if (
       !validator.isStrongPassword(password, {
         minLength: 8,
@@ -45,10 +49,10 @@ exports.signup = async (req, res) => {
         minNumbers: 1,
         minSymbols: 1,
       })
-    )
+    ) {
       throw new Error("Password must be strong");
+    }
 
-    //DOB
     isAbove18(dob);
 
     const existingUser = await User.findOne({
@@ -56,10 +60,12 @@ exports.signup = async (req, res) => {
     }).lean();
 
     if (existingUser) {
-      return res.status(409).json({ error: "User alredy exist" });
+      return res.status(409).json({ error: "User already exists" });
     }
+
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
+
     const newUser = await User.create({
       fullName,
       email,
@@ -67,17 +73,20 @@ exports.signup = async (req, res) => {
       username,
       dob,
     });
+
     generateToken(newUser._id, res);
-    const newUserObj = newUser.toObject(); // convert to plain object
-    const { password: pwd, ...safeUser } = newUserObj; // rename password to pwd
+
+    const newUserObj = newUser.toObject();
+    const { password: pwd, ...safeUser } = newUserObj;
+
     res.status(201).json({ data: safeUser });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
-//LOGIN
-exports.login = async (req, res) => {
+// LOGIN
+export const login = async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
@@ -88,10 +97,6 @@ exports.login = async (req, res) => {
     const query = [];
     if (username) query.push({ username });
     if (email) query.push({ email });
-
-    if (query.length === 0) {
-      return res.status(400).json({ error: "Username or email is required" });
-    }
 
     const existingUser = await User.findOne({ $or: query });
     if (!existingUser) {
@@ -105,16 +110,17 @@ exports.login = async (req, res) => {
 
     generateToken(existingUser._id, res);
 
-    const newUserObj = existingUser.toObject(); 
+    const newUserObj = existingUser.toObject();
     const { password: pwd, ...safeUser } = newUserObj;
+
     res.status(201).json({ data: safeUser });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
 };
 
-//LOGOUT
-exports.logout = async (req, res) => {
+// LOGOUT
+export const logout = async (req, res) => {
   try {
     res.cookie("token", null);
     res.status(200).json({ message: "Logout Successfully" });
@@ -123,59 +129,66 @@ exports.logout = async (req, res) => {
   }
 };
 
-//Profile Update
-exports.updateProfile = async (req, res) => {
+// Profile Update
+export const updateProfile = async (req, res) => {
   const { profilePicture } = req.body;
+
   try {
     const userId = req.user._id;
+
     if (!profilePicture) {
       return res.status(400).json({ message: "Profile picture is required" });
     }
+
     const uploadResponse = await cloudinary.uploader.upload(profilePicture, {
-      public_id: `user_${userId}`, // fixed id
-      overwrite: true, // overwrite old image
+      public_id: `user_${userId}`,
+      overwrite: true,
       invalidate: true,
     });
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { profilePicture: uploadResponse.secure_url },
-      { new: true },
-    );
+      { new: true }
+    ).select("-password");
+
     res.status(200).json(updatedUser);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-exports.removeProfile = async (req, res) => {
+// Remove Profile
+export const removeProfile = async (req, res) => {
   try {
     const userId = req.user._id;
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { profilePicture: "" },
-      { new: true },
+      { new: true }
     ).select("-password");
 
-    if (updatedUser.profilePicture) {
+    if (updatedUser?.profilePicture) {
       const urlParts = updatedUser.profilePicture.split("/");
-      const fileNameWithExt = urlParts[urlParts.length - 1]; // abc123.jpg
-      const publicId = fileNameWithExt.split(".")[0]; // abc123
+      const fileNameWithExt = urlParts[urlParts.length - 1];
+      const publicId = fileNameWithExt.split(".")[0];
 
       await cloudinary.uploader.destroy(publicId);
     }
 
-    res
-      .status(200)
-      .json({ message: "Profile picture removed", data: updatedUser });
+    res.status(200).json({
+      message: "Profile picture removed",
+      data: updatedUser,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-//User Info Update
-exports.updateUser = async (req, res) => {
-  const { fullName } = req.body; // sirf fullName ko read karo
+// Update User Info
+export const updateUser = async (req, res) => {
+  const { fullName } = req.body;
 
   try {
     if (!fullName) {
@@ -184,8 +197,8 @@ exports.updateUser = async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
-      { $set: { fullName } }, // sirf fullName update hoga
-      { new: true, runValidators: true },
+      { $set: { fullName } },
+      { new: true, runValidators: true }
     ).select("-password");
 
     res.status(200).json({
@@ -197,8 +210,8 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-//Get User Info
-exports.getUserInfo = async (req, res) => {
+// Get User Info
+export const getUserInfo = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
 
@@ -212,9 +225,10 @@ exports.getUserInfo = async (req, res) => {
   }
 };
 
-//Delete User
-exports.removeUser = async (req, res) => {
+// Delete User
+export const removeUser = async (req, res) => {
   const { id } = req.params;
+
   try {
     const userId = req.user._id.toString();
 
@@ -224,14 +238,15 @@ exports.removeUser = async (req, res) => {
       });
     }
 
-    const deleteUser = await User.findByIdAndDelete(id).select("-password");
-    if (!deleteUser) {
-      throw new Error("USer not find");
+    const deletedUser = await User.findByIdAndDelete(id).select("-password");
+    if (!deletedUser) {
+      throw new Error("User not found");
     }
 
-    res
-      .status(200)
-      .json({ messgae: "User accout delete successfully", data: deleteUser });
+    res.status(200).json({
+      message: "User account deleted successfully",
+      data: deletedUser,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

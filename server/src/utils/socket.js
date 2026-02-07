@@ -1,6 +1,6 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
+import express from "express";
+import http from "http";
+import { Server } from "socket.io";
 
 const app = express();
 const server = http.createServer(app);
@@ -11,28 +11,28 @@ const io = new Server(server, {
   },
 });
 
-//Online Users
+// Online users map
 const userSocket = {};
 
-
- function getReciverSocketId(userId){
+export const getReciverSocketId = (userId) => {
   return userSocket[userId];
- }
-
+};
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
   const userId = socket.handshake.query.userId;
-  if (userId) userSocket[userId] = socket.id;
-
-  //send all Online USer
-
+  if (userId) {
+    userSocket[userId] = socket.id;
+  }
+  // Send all online users
   io.emit("getOnlineUsers", Object.keys(userSocket));
+
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-    delete userSocket[userId];
+    if (userId) {
+      delete userSocket[userId];
+    }
+
     io.emit("getOnlineUsers", Object.keys(userSocket));
   });
 });
 
-module.exports = { io, app, server,getReciverSocketId };
+export { io, app, server };

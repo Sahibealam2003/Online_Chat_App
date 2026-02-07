@@ -2,6 +2,7 @@
   "name": "chat-app",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build" :"npm install --prefix server && npm install --prefix Client && npm run build --prefix Client",
     "start" : "npm run start --prefix server"
